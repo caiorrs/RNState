@@ -6,33 +6,52 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {Provider, atom, useAtom} from 'jotai';
 
 import {Pokemon} from './types';
+import React from 'react';
 import {getPokemonList} from './service';
 
-const App = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [loading, setLoading] = useState(true);
+type PokemonState = {
+  pokemon: Pokemon[];
+  loading: boolean;
+  error: boolean;
+};
 
-  const [count, setCount] = useState(0);
-
-  useEffect(() => {
-    void fetchPokemon();
-  }, []);
-
-  const fetchPokemon = async () => {
-    setLoading(true);
+const countAtom = atom(0);
+const pokemonAtom = atom<PokemonState>({
+  pokemon: [],
+  loading: false,
+  error: false,
+});
+const fetchPokemonListAtom = atom(
+  get => get(pokemonAtom),
+  async (get, set) => {
+    set(pokemonAtom, {...get(pokemonAtom), loading: true});
     try {
       const response = await getPokemonList();
-      setPokemon(response.data.results);
+      set(pokemonAtom, {
+        ...get(pokemonAtom),
+        pokemon: response.data.results,
+        error: false,
+      });
     } catch (error) {
-      console.warn({error});
-      console.log('Error getting Pokemon list');
+      set(pokemonAtom, {...get(pokemonAtom), error: true});
     } finally {
-      setLoading(false);
+      set(pokemonAtom, {...get(pokemonAtom), loading: false});
     }
-  };
+  },
+);
+
+const RenderApp = () => {
+  const [pokemonAtom, fetchPokemonList] = useAtom(fetchPokemonListAtom);
+  const {pokemon, loading} = pokemonAtom;
+
+  const [count, setCount] = useAtom(countAtom);
+
+  // useEffect(() => {
+  //   fetchPokemonList();
+  // }, []);
 
   const renderItem = ({item}: {item: Pokemon}) => {
     return (
@@ -79,7 +98,20 @@ const App = () => {
           <Text style={{fontSize: 30}}>RESET</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity
+        style={{paddingVertical: 20, backgroundColor: 'lightblue'}}
+        onPress={fetchPokemonList}>
+        <Text style={{fontSize: 30, textAlign: 'center'}}>Fetch Again</Text>
+      </TouchableOpacity>
     </View>
+  );
+};
+
+const App = () => {
+  return (
+    <Provider>
+      <RenderApp />
+    </Provider>
   );
 };
 

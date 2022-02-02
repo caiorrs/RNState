@@ -27,6 +27,8 @@ const App = () => {
     {name: 'raticate', url: 'https://pokeapi.co/api/v2/pokemon/20/'},
   ]);
 
+  const [count, setCount] = useState(0)
+
 
   const renderItem = ({ item }: { item: Pokemon }) => {
     return (
@@ -37,13 +39,22 @@ const App = () => {
   }
 
   return (
-    <View>
+    <View style={{flex: 1}}>
       <Text style={{textAlign: 'center', fontSize: 40}}>Pokemon List</Text>
       <FlatList
         data={pokemon}
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
+      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10 }}>
+        <Text style={{fontSize: 30}}>{`Count: ${count}`}</Text>
+        <TouchableOpacity onPress={() => setCount((prev) => prev + 1)}>
+          <Text style={{fontSize: 30}} >+</Text>
+        </TouchableOpacity>
+        <TouchableOpacity onPress={() => setCount(0)}>
+          <Text style={{fontSize: 30}} >RESET</Text>
+        </TouchableOpacity>
+      </View>
     </View>
   );
 };

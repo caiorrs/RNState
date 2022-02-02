@@ -6,33 +6,18 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {PokemonProvider, usePokemon} from './PokemonContext';
+import React, {useEffect} from 'react';
 
 import {Pokemon} from './types';
-import {getPokemonList} from './service';
 
-const App = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [loading, setLoading] = useState(true);
-
-  const [count, setCount] = useState(0);
+const RenderComponent = () => {
+  const {count, fetchPokemon, increment, loading, pokemon, reset} =
+    usePokemon();
 
   useEffect(() => {
     void fetchPokemon();
   }, []);
-
-  const fetchPokemon = async () => {
-    setLoading(true);
-    try {
-      const response = await getPokemonList();
-      setPokemon(response.data.results);
-    } catch (error) {
-      console.warn({error});
-      console.log('Error getting Pokemon list');
-    } finally {
-      setLoading(false);
-    }
-  };
 
   const renderItem = ({item}: {item: Pokemon}) => {
     return (
@@ -72,14 +57,22 @@ const App = () => {
           paddingVertical: 10,
         }}>
         <Text style={{fontSize: 30}}>{`Count: ${count}`}</Text>
-        <TouchableOpacity onPress={() => setCount(prev => prev + 1)}>
+        <TouchableOpacity onPress={increment}>
           <Text style={{fontSize: 30}}>+</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setCount(0)}>
+        <TouchableOpacity onPress={reset}>
           <Text style={{fontSize: 30}}>RESET</Text>
         </TouchableOpacity>
       </View>
     </View>
+  );
+};
+
+const App = () => {
+  return (
+    <PokemonProvider>
+      <RenderComponent />
+    </PokemonProvider>
   );
 };
 

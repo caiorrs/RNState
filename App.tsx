@@ -1,41 +1,59 @@
-import {FlatList, Pressable, Text, TouchableOpacity, View} from 'react-native';
-import React, {useState} from 'react';
+/* eslint-disable react-hooks/exhaustive-deps */
+import {
+  ActivityIndicator,
+  FlatList,
+  Text,
+  TouchableOpacity,
+  View,
+} from 'react-native';
+import React, {useEffect, useState} from 'react';
 
-import { Pokemon } from './types';
+import {Pokemon} from './types';
+import {getPokemonList} from './service';
 
 const App = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([
-    {name: 'bulbasaur', url: 'https://pokeapi.co/api/v2/pokemon/1/'},
-    {name: 'ivysaur', url: 'https://pokeapi.co/api/v2/pokemon/2/'},
-    {name: 'venusaur', url: 'https://pokeapi.co/api/v2/pokemon/3/'},
-    {name: 'charmander', url: 'https://pokeapi.co/api/v2/pokemon/4/'},
-    {name: 'charmeleon', url: 'https://pokeapi.co/api/v2/pokemon/5/'},
-    {name: 'charizard', url: 'https://pokeapi.co/api/v2/pokemon/6/'},
-    {name: 'squirtle', url: 'https://pokeapi.co/api/v2/pokemon/7/'},
-    {name: 'wartortle', url: 'https://pokeapi.co/api/v2/pokemon/8/'},
-    {name: 'blastoise', url: 'https://pokeapi.co/api/v2/pokemon/9/'},
-    {name: 'caterpie', url: 'https://pokeapi.co/api/v2/pokemon/10/'},
-    {name: 'metapod', url: 'https://pokeapi.co/api/v2/pokemon/11/'},
-    {name: 'butterfree', url: 'https://pokeapi.co/api/v2/pokemon/12/'},
-    {name: 'weedle', url: 'https://pokeapi.co/api/v2/pokemon/13/'},
-    {name: 'kakuna', url: 'https://pokeapi.co/api/v2/pokemon/14/'},
-    {name: 'beedrill', url: 'https://pokeapi.co/api/v2/pokemon/15/'},
-    {name: 'pidgey', url: 'https://pokeapi.co/api/v2/pokemon/16/'},
-    {name: 'pidgeotto', url: 'https://pokeapi.co/api/v2/pokemon/17/'},
-    {name: 'pidgeot', url: 'https://pokeapi.co/api/v2/pokemon/18/'},
-    {name: 'rattata', url: 'https://pokeapi.co/api/v2/pokemon/19/'},
-    {name: 'raticate', url: 'https://pokeapi.co/api/v2/pokemon/20/'},
-  ]);
+  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const [count, setCount] = useState(0)
+  const [count, setCount] = useState(0);
 
+  useEffect(() => {
+    void fetchPokemon();
+  }, []);
 
-  const renderItem = ({ item }: { item: Pokemon }) => {
+  const fetchPokemon = async () => {
+    setLoading(true);
+    try {
+      const response = await getPokemonList();
+      setPokemon(response.data.results);
+    } catch (error) {
+      console.warn({error});
+      console.log('Error getting Pokemon list');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const renderItem = ({item}: {item: Pokemon}) => {
     return (
-      <TouchableOpacity style={{paddingVertical: 20, borderBottomWidth: 1, alignItems: 'center'}} onPress={() => console.warn(item.name)}>
+      <TouchableOpacity
+        style={{
+          paddingVertical: 20,
+          borderBottomWidth: 1,
+          alignItems: 'center',
+        }}
+        onPress={() => console.warn(item.name)}>
         <Text key={item.name}>{item.name}</Text>
       </TouchableOpacity>
-    )
+    );
+  };
+
+  if (loading) {
+    return (
+      <View style={{flex: 1, alignItems: 'center', justifyContent: 'center'}}>
+        <ActivityIndicator size={'large'} color="blue" />
+      </View>
+    );
   }
 
   return (
@@ -46,13 +64,19 @@ const App = () => {
         renderItem={renderItem}
         showsVerticalScrollIndicator={false}
       />
-      <View style={{ flexDirection: 'row', justifyContent: 'space-between', paddingHorizontal: 20, paddingVertical: 10 }}>
+      <View
+        style={{
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          paddingHorizontal: 20,
+          paddingVertical: 10,
+        }}>
         <Text style={{fontSize: 30}}>{`Count: ${count}`}</Text>
-        <TouchableOpacity onPress={() => setCount((prev) => prev + 1)}>
-          <Text style={{fontSize: 30}} >+</Text>
+        <TouchableOpacity onPress={() => setCount(prev => prev + 1)}>
+          <Text style={{fontSize: 30}}>+</Text>
         </TouchableOpacity>
         <TouchableOpacity onPress={() => setCount(0)}>
-          <Text style={{fontSize: 30}} >RESET</Text>
+          <Text style={{fontSize: 30}}>RESET</Text>
         </TouchableOpacity>
       </View>
     </View>

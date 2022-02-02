@@ -6,33 +6,26 @@ import {
   TouchableOpacity,
   View,
 } from 'react-native';
-import React, {useEffect, useState} from 'react';
+import {Provider, useDispatch, useSelector} from 'react-redux';
+import React, {useEffect} from 'react';
+import {RootState, store} from './src/store/store';
+import {increment, reset} from './src/features/counter/counterSlice';
 
 import {Pokemon} from './types';
-import {getPokemonList} from './service';
+import {fetchPokemonList} from './src/features/pokemon/pokemonSlice';
 
-const App = () => {
-  const [pokemon, setPokemon] = useState<Pokemon[]>([]);
-  const [loading, setLoading] = useState(true);
+// import {useGetPokemonListQuery} from './src/services/pokemon';
 
-  const [count, setCount] = useState(0);
+const RenderApp = () => {
+  const count = useSelector((state: RootState) => state.counter.count);
+  const {loading, pokemon} = useSelector((state: RootState) => state.pokemon);
+  const dispatch = useDispatch();
 
-  useEffect(() => {
-    void fetchPokemon();
-  }, []);
+  // const {data, error, isLoading} = useGetPokemonListQuery({skipToken: true});
 
-  const fetchPokemon = async () => {
-    setLoading(true);
-    try {
-      const response = await getPokemonList();
-      setPokemon(response.data.results);
-    } catch (error) {
-      console.warn({error});
-      console.log('Error getting Pokemon list');
-    } finally {
-      setLoading(false);
-    }
-  };
+  // useEffect(() => {
+  //   dispatch(fetchPokemonList());
+  // }, []);
 
   const renderItem = ({item}: {item: Pokemon}) => {
     return (
@@ -72,14 +65,27 @@ const App = () => {
           paddingVertical: 10,
         }}>
         <Text style={{fontSize: 30}}>{`Count: ${count}`}</Text>
-        <TouchableOpacity onPress={() => setCount(prev => prev + 1)}>
+        <TouchableOpacity onPress={() => dispatch(increment())}>
           <Text style={{fontSize: 30}}>+</Text>
         </TouchableOpacity>
-        <TouchableOpacity onPress={() => setCount(0)}>
+        <TouchableOpacity onPress={() => dispatch(reset())}>
           <Text style={{fontSize: 30}}>RESET</Text>
         </TouchableOpacity>
       </View>
+      <TouchableOpacity
+        onPress={() => dispatch(fetchPokemonList())}
+        style={{backgroundColor: 'lightblue', paddingVertical: 20}}>
+        <Text style={{fontSize: 20, textAlign: 'center'}}>Fetch again</Text>
+      </TouchableOpacity>
     </View>
+  );
+};
+
+const App = () => {
+  return (
+    <Provider store={store}>
+      <RenderApp />
+    </Provider>
   );
 };
 
